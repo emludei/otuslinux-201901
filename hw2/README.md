@@ -14,7 +14,7 @@
       }
 ```
 
-* Show all disk in vm using `lsblk`:
+* Show all disks in vm using `lsblk`:
 
 ```bash
 NAME   MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
