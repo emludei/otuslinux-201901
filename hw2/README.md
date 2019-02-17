@@ -262,7 +262,7 @@ Consistency Policy : resync
        5       8       96        5      active sync set-B   /dev/sdg
 ```
 
-* Get configuration information of RAID `sudo mdadm --detail --scan --verbose`:
+* Get configuration of RAID `sudo mdadm --detail --scan --verbose`:
 ```bash
 ARRAY /dev/md0 level=raid10 num-devices=6 metadata=1.2 name=otuslinux:0 UUID=af451a4e:9386549d:33f4ec58:4cd98d82
    devices=/dev/sdb,/dev/sdc,/dev/sdd,/dev/sde,/dev/sdf,/dev/sdg
