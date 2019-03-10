@@ -404,3 +404,98 @@ file100  file15  file2   file24  file29  file33  file38  file42  file47  file51 
 file11   file16  file20  file25  file3   file34  file39  file43  file48  file52  file57  file61  file66  file70  file75  file8   file84  file89  file93  file98
 file12   file17  file21  file26  file30  file35  file4   file44  file49  file53  file58  file62  file67  file71  file76  file80  file85  file9   file94  file99
 ```
+
+* Install zfs (kABI-tracking kmod):
+
+```bash
+[vagrant@lvm ~]$ sudo yum install -y http://download.zfsonlinux.org/epel/zfs-release.el7_5.noarch.rpm
+[vagrant@lvm ~]$ sudo vi /etc/yum.repos.d/zfs.repo
+[vagrant@lvm ~]$ head -n 15 /etc/yum.repos.d/zfs.repo
+[zfs]
+name=ZFS on Linux for EL7 - dkms
+baseurl=http://download.zfsonlinux.org/epel/7.5/$basearch/
+enabled=0
+metadata_expire=7d
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux
+
+[zfs-kmod]
+name=ZFS on Linux for EL7 - kmod
+baseurl=http://download.zfsonlinux.org/epel/7.5/kmod/$basearch/
+enabled=1
+metadata_expire=7d
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux
+
+[vagrant@lvm ~]$ sudo yum install zfs
+[vagrant@lvm ~]$ sudo modprobe zfs
+```
+
+* Create zfs mirror:
+
+```bash
+[vagrant@lvm ~]$ sudo zpool create zmirror mirror sde sdf
+[vagrant@lvm ~]$ sudo touch /zmirror/file{1..100}
+[vagrant@lvm ~]$ ls /zmirror/
+file1    file13  file18  file22  file27  file31  file36  file40  file45  file5   file54  file59  file63  file68  file72  file77  file81  file86  file90  file95
+file10   file14  file19  file23  file28  file32  file37  file41  file46  file50  file55  file6   file64  file69  file73  file78  file82  file87  file91  file96
+file100  file15  file2   file24  file29  file33  file38  file42  file47  file51  file56  file60  file65  file7   file74  file79  file83  file88  file92  file97
+file11   file16  file20  file25  file3   file34  file39  file43  file48  file52  file57  file61  file66  file70  file75  file8   file84  file89  file93  file98
+file12   file17  file21  file26  file30  file35  file4   file44  file49  file53  file58  file62  file67  file71  file76  file80  file85  file9   file94  file99
+
+[vagrant@lvm ~]$ sudo zpool status zmirror
+  pool: zmirror
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	zmirror     ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    sde     ONLINE       0     0     0
+	    sdf     ONLINE       0     0     0
+
+errors: No known data errors
+
+[vagrant@lvm ~]$ lsblk
+NAME                       MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda                          8:0    0   40G  0 disk 
+├─sda1                       8:1    0    1M  0 part 
+├─sda2                       8:2    0    1G  0 part /boot
+└─sda3                       8:3    0   39G  0 part 
+  ├─VolGroup00-LogVol00    253:0    0    8G  0 lvm  /
+  ├─VolGroup00-LogVol01    253:1    0  1.5G  0 lvm  [SWAP]
+  └─VolGroup00-LogVol_Home 253:2    0    4G  0 lvm  /home
+sdb                          8:16   0   20G  0 disk 
+sdc                          8:32   0    2G  0 disk 
+├─vg_var-lv_var_rmeta_0    253:3    0    4M  0 lvm  
+│ └─vg_var-lv_var          253:7    0    1G  0 lvm  /var
+└─vg_var-lv_var_rimage_0   253:4    0    1G  0 lvm  
+  └─vg_var-lv_var          253:7    0    1G  0 lvm  /var
+sdd                          8:48   0    2G  0 disk 
+├─vg_var-lv_var_rmeta_1    253:5    0    4M  0 lvm  
+│ └─vg_var-lv_var          253:7    0    1G  0 lvm  /var
+└─vg_var-lv_var_rimage_1   253:6    0    1G  0 lvm  
+  └─vg_var-lv_var          253:7    0    1G  0 lvm  /var
+sde                          8:64   0    1G  0 disk 
+├─sde1                       8:65   0 1014M  0 part 
+└─sde9                       8:73   0    8M  0 part 
+sdf                          8:80   0    1G  0 disk 
+├─sdf1                       8:81   0 1014M  0 part 
+└─sdf9                       8:89   0    8M  0 part
+
+[vagrant@lvm ~]$ sudo mount | grep zfs
+zmirror on /zmirror type zfs (rw,seclabel,xattr,noacl)
+
+[vagrant@lvm ~]$ sudo zpool list
+NAME      SIZE  ALLOC   FREE  EXPANDSZ   FRAG    CAP  DEDUP  HEALTH  ALTROOT
+zmirror  1008M   166K  1008M         -     0%     0%  1.00x  ONLINE  -
+
+[vagrant@lvm ~]$ zfs get mounted
+NAME     PROPERTY  VALUE    SOURCE
+zmirror  mounted   yes      -
+
+[vagrant@lvm ~]$ zfs get mountpoint
+NAME     PROPERTY    VALUE       SOURCE
+zmirror  mountpoint  /zmirror    default
+```
