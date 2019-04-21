@@ -1,0 +1,29 @@
+---
+# tasks file for nginx
+- name: install epel package from standart repo
+  yum:
+    name: epel-release
+    state: present
+  tags:
+    - epel-package
+    - packages
+
+- name: install NGINX package
+  yum:
+    name: nginx
+    state: latest
+  notify:
+    - restart NGINX
+  tags:
+    - nginx-package
+    - packages
+
+- name: create NGINX config from template
+  template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify:
+    - reload NGINX config
+  tags:
+    - nginx-configutation
+...
